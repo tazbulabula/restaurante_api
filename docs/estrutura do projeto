@@ -1,0 +1,51 @@
+📁 restaurante-api/
+├── 📁 .venv/                    # Virtualenv (gerenciado pelo Poetry)
+├── 📁 app/
+│   ├── 📁 core/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   └── security.py
+│   ├── 📁 models/
+│   │   ├── __init__.py
+│   │   ├── usuario.py
+│   │   ├── produto.py
+│   │   ├── pedido.py
+│   │   ├── item_pedido.py
+│   │   └── reserva.py
+│   ├── 📁 schemas/
+│   │   ├── __init__.py
+│   │   ├── usuario.py
+│   │   ├── produto.py
+│   │   ├── pedido.py
+│   │   └── pagamento.py
+│   ├── 📁 routes/
+│   │   ├── __init__.py
+│   │   ├── produtos.py
+│   │   ├── pedidos.py
+│   │   ├── reservas.py
+│   │   ├── auth.py
+│   │   └── pagamento.py
+│   ├── 📁 services/
+│   │   ├── __init__.py
+│   │   ├── pagamento.py      # Integração EMIS
+│   │   └── pedido.py
+│   ├── 📁 repositories/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   └── pedido_repository.py
+│   ├── 📁 utils/
+│   │   ├── __init__.py
+│   │   └── validators.py
+│   └── main.py
+├── 📁 migrations/               # Alembic
+├── 📁 tests/
+│   ├── 📁 unit/
+│   └── 📁 integration/
+├── 📁 scripts/                  # Scripts de utilidade
+│   └── seed.py                 # Popula banco com dados iniciais
+├── 📁 .vscode/                  # Configurações do VSCode (opcional)
+├── pyproject.toml               # Configuração do Poetry
+├── poetry.lock
+├── .gitignore
+└── README.md
