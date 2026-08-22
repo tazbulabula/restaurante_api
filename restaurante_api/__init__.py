@@ -1,4 +1,7 @@
-from sqlalchemy.orm import registry
+# restaurante_api/__init__.py
 
-# Cria um registry para mapear as tabelas
-table_registry = registry()
+from .core.database import table_registry
+
+__all__ = [
+    'table_registry',
+]

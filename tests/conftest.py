@@ -9,11 +9,12 @@ from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from aurora_ecommerce.app import app
-from aurora_ecommerce.core.database import get_session, table_registry
-from aurora_ecommerce.core.security import hash_password
-from aurora_ecommerce.models.user import User, UserType
-from aurora_ecommerce.repositories.user import UserRepository
+from restaurante_api.app import app
+from restaurante_api.core.database import get_session, table_registry
+from restaurante_api.core.security import hash_password
+from restaurante_api.models.user import User
+from restaurante_api.repositories.user import UserRepository
+from restaurante_api.schemas.user import UserType
 
 from .factories.user_factory import UserFactory
 
@@ -79,7 +80,8 @@ async def user(user_repo):
     user_created = await UserFactory.create_in_repo(
         user_repo,
         username='testtest',
-        email='testtest@gmaio.com',
+        email='testtest@gmail.com',
+        password='123',
     )
 
     await user_repo.refresh(user_created)
@@ -108,29 +110,7 @@ async def admin_user(session):
         password=hash_password(password),
         email='admin@gmail.com',
         phone='11999999999',
-        address='Rua dos Bobos, 0',
         user_type=UserType.ADMIN,
-    )
-
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-
-    user.clean_password = password
-
-    return user
-
-
-@pytest_asyncio.fixture
-async def super_admin_user(session):
-    password = '123'
-    user = User(
-        username='superadmin',
-        password=hash_password(password),
-        email='superadmin@gmail.com',
-        phone='11999999999',
-        address='Rua dos Bobos, 0',
-        user_type=UserType.SUPERADMIN,
     )
 
     session.add(user)

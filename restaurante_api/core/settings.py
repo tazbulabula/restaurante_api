@@ -20,5 +20,14 @@ class Settings(BaseSettings):
 
     FRONTEND_URL: str = 'http://localhost:3000'
 
+    ENVIRONMENT: str = 'development'
+
     # Email de suporte (opcional)
     MAIL_SUPPORT: str = 'suporte@restaurante_aurora.com'
+
+    # EMIS/vPOS (Configurações para Angola)
+    EMIS_API_URL: str = 'https://apis.emis.co.ao'
+    EMIS_POS_ID: str = ''
+    EMIS_MERCHANT_TOKEN: str = ''
+    EMIS_SUPERVISOR_CARD: str = ''
+    EMIS_CALLBACK_URL: str = ''

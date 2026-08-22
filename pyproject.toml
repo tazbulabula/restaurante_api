@@ -17,6 +17,7 @@ dependencies = [
     "tzdata (>=2026.3,<2027.0)",
     "aiosqlite (>=0.22.1,<0.23.0)",
     "freezegun (>=1.5.5,<2.0.0)",
+    "aiosmtplib (>=5.1.2,<6.0.0)",
 
 ]
 
