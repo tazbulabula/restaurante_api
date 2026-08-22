@@ -46,7 +46,7 @@ async def update_user(
         )
 
 
-@router.delete('/{public_id}')
+@router.delete('/delete/{public_id}')
 async def delete_user(
     public_id: str, user_service: UserServiceDep, current_user: Current_user
 ):

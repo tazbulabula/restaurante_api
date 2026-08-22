@@ -27,8 +27,12 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = None
 
 
-class UserPublic(UserSchema):
-    pass
+class UserPublic(BaseModel):
+    username: str
+    email: EmailStr
+    phone: Optional[str] = None
+    user_type: str
+    public_id: str
 
 
 class UserList(BaseModel):

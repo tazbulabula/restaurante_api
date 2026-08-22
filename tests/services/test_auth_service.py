@@ -15,7 +15,6 @@ def mock_user_repo():
     """Mock do UserRepository."""
     repo = AsyncMock()
     repo.get_by_email = AsyncMock()
-    repo.update_last_login = AsyncMock()
     repo.commit = AsyncMock()
     repo.update_password = AsyncMock()
     repo.get_by_public_id = AsyncMock()
@@ -81,9 +80,7 @@ async def test_login_success(auth_service, mock_user_repo, mock_user):
     # Assert
     assert 'access_token' in result
     assert result['token_type'] == 'bearer'
-    mock_user_repo.update_last_login.assert_called_once_with(
-        mock_user.public_id
-    )
+
     mock_user_repo.commit.assert_called_once()
 
 

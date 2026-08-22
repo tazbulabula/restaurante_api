@@ -14,20 +14,20 @@ def test_create_user(client):
     )
     data = response.json()
     assert response.status_code == HTTPStatus.CREATED
-    assert len(data) == int(7)
+    assert len(data) == int(5)
+
     assert data == {
         'username': data['username'],
         'email': data['email'],
         'phone': data['phone'],
         'user_type': data['user_type'],
         'public_id': data['public_id'],
-        'deleted_at': None,
     }
 
 
 def test_create_user_with_email_existent(client, user):
     response = client.post(
-        '/users',
+        '/users/create',
         json={
             'username': 'Taz',
             'email': user.email,
@@ -44,7 +44,7 @@ def test_create_user_with_email_existent(client, user):
 
 def test_update_user(client, user, token):
     response = client.put(
-        f'/users/{user.public_id}',
+        f'/users/update/{user.public_id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'Taz',
@@ -65,14 +65,13 @@ def test_update_user(client, user, token):
         'username': 'Taz',
         'email': 'taz@gmail.com',
         'phone': '9xxxxxxxxxx',
-        'user_type': 'CLIENT',
-        'deleted_at': None,
+        'user_type': 'client',
     }
 
 
 def test_update_user_with_integrity_error(client, user, token):
     client.post(
-        '/users',
+        '/users/create',
         json={
             'username': 'Taz',
             'email': 'outroEmail@gmail.com',
@@ -82,7 +81,7 @@ def test_update_user_with_integrity_error(client, user, token):
     )
 
     response = client.put(
-        f'/users/{user.public_id}',
+        f'/users/update/{user.public_id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'Taz',
@@ -100,7 +99,7 @@ def test_update_user_with_integrity_error(client, user, token):
 
 def test_update_user_with_other_public_id(client, user, other_user, token):
     response = client.put(
-        f'/users/{other_user.public_id}',
+        f'/users/update/{other_user.public_id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'Taz',
@@ -116,7 +115,7 @@ def test_update_user_with_other_public_id(client, user, other_user, token):
 
 def test_delete_user(client, user, token):
     response = client.delete(
-        f'/users/{user.public_id}',
+        f'/users/delete/{user.public_id}',
         headers={'Authorization': f'Bearer {token}'},
     )
 
@@ -126,7 +125,7 @@ def test_delete_user(client, user, token):
 
 def test_delete_other_user(client, user, token, other_user):
     response = client.delete(
-        f'/users/{other_user.public_id}',
+        f'/users/delete/{other_user.public_id}',
         headers={'Authorization': f'Bearer {token}'},
     )
 

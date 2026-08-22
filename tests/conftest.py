@@ -132,6 +132,15 @@ def token(client, user):
     return response.json()['access_token']
 
 
+@pytest.fixture
+def admin_token(client, admin_user):
+    """Token de autenticação para admin"""
+    response = client.post(
+        'token/login', data={'username': admin_user.email, 'password': '123'}
+    )
+    return response.json()['access_token']
+
+
 @contextmanager
 def _mock_delete_attr(*, model, attributes_to_remove=None):
     """
