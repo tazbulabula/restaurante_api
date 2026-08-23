@@ -454,9 +454,7 @@ async def test_alternar_disponibilidade(client, session, admin_token):
 
 
 @pytest.mark.asyncio
-async def test_alternar_disponibilidade_usuario_comum(
-    client, session, token
-):
+async def test_alternar_disponibilidade_usuario_comum(client, session, token):
     """Testa alternância de disponibilidade com usuário comum (deve falhar)"""
     produto = Produto(
         name='Produto Teste',

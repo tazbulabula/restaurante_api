@@ -3,12 +3,15 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Boolean, Enum, Float, String, func
 from sqlalchemy.orm import Mapped, mapped_as_dataclass, mapped_column
 
 from restaurante_api.core.database import table_registry
+
+if TYPE_CHECKING:
+    pass
 
 
 class CategoriaProduto(str, enum.Enum):

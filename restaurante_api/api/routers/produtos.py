@@ -147,10 +147,9 @@ async def update_product(
 
     """Atualiza um produto existente"""
 
-    query = await session.execute(
-        select(Produto).where(Produto.public_id == public_id)
-    )
-    produto = query.scalar_one_or_none()
+    query = select(Produto).where(Produto.public_id == public_id)
+    result = await session.execute(query)
+    produto = result.scalar_one_or_none()
 
     if not produto:
         raise HTTPException(
@@ -191,10 +190,9 @@ async def deletar_produto(
     PermissionService.require_admin(current_user)
     """Deleta um produto"""
 
-    query = await session.execute(
-        select(Produto).where(Produto.public_id == public_id)
-    )
-    produto = query.scalar_one_or_none()
+    query = select(Produto).where(Produto.public_id == public_id)
+    result = await session.execute(query)
+    produto = result.scalar_one_or_none()
 
     if not produto:
         raise HTTPException(
@@ -228,10 +226,9 @@ async def alternar_disponibilidade(
 
     """Alterna a disponibilidade de um produto"""
 
-    query = await session.execute(
-        select(Produto).where(Produto.public_id == public_id)
-    )
-    produto = query.scalar_one_or_none()
+    query = select(Produto).where(Produto.public_id == public_id)
+    result = await session.execute(query)
+    produto = result.scalar_one_or_none()
 
     if not produto:
         raise HTTPException(

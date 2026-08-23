@@ -18,6 +18,7 @@ dependencies = [
     "aiosqlite (>=0.22.1,<0.23.0)",
     "freezegun (>=1.5.5,<2.0.0)",
     "aiosmtplib (>=5.1.2,<6.0.0)",
+    "pytest-asyncio (>=1.4.0,<2.0.0)",
 
 ]
 
@@ -66,3 +67,6 @@ post_test = 'coverage html'
 [tool.coverage.run]
 core = "ctrace"
 concurrency = ["thread", "greenlet"]
+
+[pytest]
+asyncio_mode = 'auto'

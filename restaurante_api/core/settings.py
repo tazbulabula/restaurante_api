@@ -25,9 +25,17 @@ class Settings(BaseSettings):
     # Email de suporte (opcional)
     MAIL_SUPPORT: str = 'suporte@restaurante_aurora.com'
 
-    # EMIS/vPOS (Configurações para Angola)
-    EMIS_API_URL: str = 'https://apis.emis.co.ao'
-    EMIS_POS_ID: str = ''
-    EMIS_MERCHANT_TOKEN: str = ''
-    EMIS_SUPERVISOR_CARD: str = ''
-    EMIS_CALLBACK_URL: str = ''
+    # ============================================================
+    # EMIS/vPOS - Configurações para Angola
+    # ============================================================
+    EMIS_API_URL: str = "https://apis.emis.co.ao"
+    EMIS_POS_ID: str = ""  # ID do ponto de venda
+    EMIS_MERCHANT_TOKEN: str = ""  # Token do comerciante
+    EMIS_SUPERVISOR_CARD: str = ""  # Cartão do supervisor
+    EMIS_CALLBACK_URL: str = "http://localhost:8000/api/pagamento/callback"
+
+    # ============================================================
+    # Timeouts e Configurações
+    # ============================================================
+    PAGAMENTO_TIMEOUT_SEGUNDOS: int = 30
+    PAGAMENTO_TENTATIVAS_MAX: int = 3

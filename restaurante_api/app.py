@@ -1,6 +1,14 @@
 from fastapi import FastAPI
 
-from restaurante_api.api.routers import auth, produtos, users
+from restaurante_api.api.routers import (
+    auth,
+    mesas,
+    pagamentos,
+    pedidos,
+    produtos,
+    reservas,
+    users,
+)
 
 app = FastAPI(
     title='Restaurante API',
@@ -11,6 +19,10 @@ app = FastAPI(
 app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(produtos.router)
+app.include_router(mesas.router)
+app.include_router(reservas.router)
+app.include_router(pedidos.router)
+app.include_router(pagamentos.router)
 
 
 @app.get('/')

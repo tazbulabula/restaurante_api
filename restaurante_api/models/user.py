@@ -1,12 +1,21 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import String, func
-from sqlalchemy.orm import Mapped, mapped_as_dataclass, mapped_column
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_as_dataclass,
+    mapped_column,
+    relationship,
+)
 
-from restaurante_api import table_registry
+from restaurante_api.core.database import table_registry
 from restaurante_api.schemas.user import UserType
+
+if TYPE_CHECKING:
+    from restaurante_api.models.pedido import Pedido
+    from restaurante_api.models.reserva_mesa import ReservaMesa
 
 
 @mapped_as_dataclass(table_registry)
@@ -43,4 +52,18 @@ class User:
         nullable=True,
         default=None,
         index=True,
+    )
+
+    reservas: Mapped[list['ReservaMesa']] = relationship(
+        'ReservaMesa',
+        back_populates='usuario',
+        lazy='selectin',
+        init=False,
+    )
+
+    pedidos: Mapped[list['Pedido']] = relationship(
+        'Pedido',
+        back_populates='usuario',
+        lazy='selectin',
+        init=False,
     )
