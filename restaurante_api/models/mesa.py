@@ -35,6 +35,7 @@ class StatusMesa(str, enum.Enum):
     EM_LIMPEZA = 'em_limpeza'
     INDISPONIVEL = 'indisponivel'
     CONFIRMADA = 'confirmada'
+    CANCELADA = 'cancelada'
 
 
 class TipoMesa(str, enum.Enum):

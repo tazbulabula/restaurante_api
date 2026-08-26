@@ -4,48 +4,11 @@ from datetime import datetime, timedelta
 from http import HTTPStatus
 
 import pytest
-import pytest_asyncio
 
 from restaurante_api.models.mesa import Mesa, StatusMesa
 from restaurante_api.models.pedido import Pedido, StatusPedido
 from restaurante_api.models.produto import CategoriaProduto, Produto
 from restaurante_api.models.reserva_mesa import ReservaMesa
-
-# ============================================================
-# FIXTURES AUXILIARES
-# ============================================================
-
-
-@pytest_asyncio.fixture
-async def produtos_base(session):
-    """Cria produtos base para testes"""
-    produtos = [
-        Produto(
-            name='Pizza',
-            price=2500.00,
-            category=CategoriaProduto.PRINCIPAL,
-            is_available=True,
-        ),
-        Produto(
-            name='Suco',
-            price=450.00,
-            category=CategoriaProduto.SUCOS,
-            is_available=True,
-        ),
-        Produto(
-            name='Cerveja',
-            price=380.00,
-            category=CategoriaProduto.CERVEJA,
-            is_available=True,
-        ),
-    ]
-    for p in produtos:
-        session.add(p)
-    await session.commit()
-    for p in produtos:
-        await session.refresh(p)
-    return produtos
-
 
 # ============================================================
 # TESTES DE LISTAGEM

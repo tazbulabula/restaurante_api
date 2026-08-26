@@ -54,6 +54,8 @@ class AuthService:
             hashed_password=hash_password(data_password.new_password),
         )
 
+        await self.user_repo.commit()
+
         return {'message': 'Password is been changed'}
 
     async def request_password_reset(self, email: str):

@@ -12,3 +12,7 @@ class BaseMixin(Generic[ModelType]):
     def __init__(self, session: Session, model: Type[ModelType]):
         self._session = session
         self._model = model
+
+    @property
+    def session(self):
+        return self._session

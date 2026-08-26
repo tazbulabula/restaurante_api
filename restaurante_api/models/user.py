@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import String, func
+from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.orm import (
     Mapped,
     mapped_as_dataclass,
@@ -39,6 +39,11 @@ class User:
     user_type: Mapped[UserType] = mapped_column(
         nullable=False, default=UserType.CLIENT
     )
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )
@@ -48,6 +53,7 @@ class User:
     )
 
     deleted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime,
         init=False,
         nullable=True,
         default=None,

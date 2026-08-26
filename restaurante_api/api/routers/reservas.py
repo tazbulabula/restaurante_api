@@ -312,7 +312,7 @@ async def cancelar_reserva(
         )
 
     # Atualiza status da reserva e da mesa
-    reserva.status = StatusMesa.DISPONIVEL
+    reserva.status = StatusMesa.CANCELADA
     await session.commit()
     await session.refresh(reserva)
 
@@ -334,7 +334,7 @@ async def cancelar_reserva(
 # 6. MINHAS RESERVAS (USUÁRIO COMUM)
 # ============================================================
 @router.get(
-    '/minhas',
+    '/listar/minhas',
     response_model=List[ReservaMesaResponse],
     status_code=status.HTTP_200_OK,
     summary='Minhas reservas',

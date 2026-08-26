@@ -33,14 +33,6 @@ class UserRepository(
         super().__init__(session)
 
     # Métodos adicionais
-    async def deactivate_all_suppliers(self) -> int:
-        """Desativa todos fornecedores (soft delete)."""
-        suppliers = await self.get_suppliers(active_only=True)
-        count = 0
-        for supplier in suppliers:
-            await self.soft_delete(supplier.public_id)
-            count += 1
-        return count
 
     async def delete_by_email(self, email: str) -> bool:
         """Deleta usuário por email (hard delete)."""

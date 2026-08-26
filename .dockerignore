@@ -1,0 +1,24 @@
+# backend/.dockerignore
+
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+.venv
+.env
+.git
+.gitignore
+README.md
+.DS_Store
+*.log
+.pytest_cache
+.coverage
+htmlcov
+.mypy_cache
+.ruff_cache

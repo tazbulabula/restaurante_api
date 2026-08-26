@@ -1,5 +1,4 @@
-from datetime import datetime, timezone
-from typing import Any, Generic, List, Optional
+from typing import Any, Generic, List
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import InstrumentedAttribute
@@ -9,20 +8,6 @@ from .base_mixin import BaseMixin, ModelType
 
 class UtilityMixin(BaseMixin[ModelType], Generic[ModelType]):
     """Mixin para métodos utilitários"""
-
-    async def soft_delete(self, public_id: str) -> Optional[ModelType]:
-        if not hasattr(self._model, 'deleted_at'):
-            raise AttributeError("Model has no 'deleted_at' for soft delete")
-        # NOTA: update vem do CRUDMixin,
-        # que estará disponível no repositório final
-        return await self.update(
-            public_id, deleted_at=datetime.now(timezone.utc)
-        )
-
-    async def restore(self, public_id: str) -> Optional[ModelType]:
-        if not hasattr(self._model, 'deleted_at'):
-            raise AttributeError("Model has no 'deleted_at' for restore")
-        return await self.update(public_id, deleted_at=None)
 
     async def get_random(self, limit: int = 1) -> List[ModelType]:
         result = await self._session.execute(

@@ -1,5 +1,5 @@
 # restaurante_api/routes/pedidos.py
-
+from datetime import datetime
 from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -14,6 +14,10 @@ from restaurante_api.models.produto import Produto
 from restaurante_api.models.reserva_mesa import ReservaMesa
 from restaurante_api.models.user import User
 from restaurante_api.schemas.item_pedido import ItemPedidoDetalhadoResponse
+from restaurante_api.schemas.pagamento import (
+    MetodoPagamentoRequest,
+    PagamentoManualRequest,
+)
 from restaurante_api.schemas.pedido import (
     PedidoCreate,
     PedidoDetalhadoResponse,
@@ -411,3 +415,97 @@ async def cancelar_pedido(
         )
 
     return pedido
+
+
+@router.patch('/{public_id}/pagamento-manual')
+async def pagamento_manual(
+    public_id: str,
+    dados: PagamentoManualRequest,
+    session: Session,
+    current_user: Current_user,
+):
+    """Registra pagamento manual (apenas admin)"""
+    PermissionService.require_admin(current_user)
+
+    query = select(Pedido).where(Pedido.public_id == public_id)
+    result = await session.execute(query)
+    pedido = result.scalar_one_or_none()
+
+    if not pedido:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Pedido não encontrado',
+        )
+
+    if pedido.status != StatusPedido.AGUARDANDO_PAGAMENTO:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='Pedido não está aguardando pagamento',
+        )
+    d = dados.metodo.upper()
+    data = datetime.now().strftime('%Y%m%d%H%M%S')
+    # Registra pagamento manual
+    pedido.status = StatusPedido.PAGO
+    pedido.pagamento_confirmado_em = datetime.now()
+    pedido.metodo_pagamento = dados.metodo
+    pedido.pagamento_manual = True
+    pedido.pagamento_autorizado_por = current_user.username
+    pedido.codigo_autorizacao = f'MANUAL-{d}-{data}'
+    pedido.pagamento_dados = dados.model_dump()
+
+    # Atualiza reserva se existir
+    if pedido.reserva_mesa_id:
+        reserva = await session.get(ReservaMesa, pedido.reserva_mesa_id)
+        if reserva:
+            reserva.status = StatusMesa.CONFIRMADA
+
+    await session.commit()
+    await session.refresh(pedido)
+
+    m = dados.metodo.value
+    return {
+        'message': f'Pagamento via {m} registrado com sucesso',
+        'pedido_id': pedido.id,
+        'pedido_public_id': pedido.public_id,
+        'status': pedido.status,
+        'metodo': dados.metodo,
+        'codigo_autorizacao': pedido.codigo_autorizacao,
+    }
+
+
+@router.patch('/{public_id}/metodo-pagamento')
+async def selecionar_metodo_pagamento(
+    public_id: str,
+    dados: MetodoPagamentoRequest,
+    session: Session,
+    current_user: Current_user,
+):
+    """Seleciona o método de pagamento (antes de pagar)"""
+    query = select(Pedido).where(Pedido.public_id == public_id)
+    result = await session.execute(query)
+    pedido = result.scalar_one_or_none()
+
+    if not pedido:
+        raise HTTPException(404, 'Pedido não encontrado')
+
+    if pedido.usuario_id != current_user.id:
+        raise HTTPException(403, 'Não autorizado')
+
+    if pedido.status != StatusPedido.AGUARDANDO_PAGAMENTO:
+        raise HTTPException(409, 'Pedido não está aguardando pagamento')
+
+    # Atualiza método de pagamento e status
+    pedido.metodo_pagamento = dados.metodo
+    pedido.status = StatusPedido.AGUARDANDO_CONFIRMACAO_MANUAL
+
+    await session.commit()
+    await session.refresh(pedido)
+
+    m = 'Aguardando confirmação do pagamento pelo restaurante'
+    return {
+        'message': 'Método de pagamento selecionado com sucesso',
+        'pedido_id': pedido.id,
+        'metodo': pedido.metodo_pagamento,
+        'status': pedido.status,
+        'proximo_passos': m,
+    }

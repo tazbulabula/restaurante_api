@@ -1,4 +1,4 @@
-# restaurante_api/models/test_pedido.py
+# restaurante_api/models/pedido.py
 
 import enum
 import uuid
@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     DateTime,
     Enum,
     Float,
@@ -26,6 +27,7 @@ from restaurante_api.core.database import table_registry
 
 if TYPE_CHECKING:
     from restaurante_api.models.item_pedido import ItemPedido
+    from restaurante_api.models.reserva_mesa import ReservaMesa
     from restaurante_api.models.user import User
 
 
@@ -33,6 +35,7 @@ class StatusPedido(str, enum.Enum):
     """Status do pedido"""
 
     AGUARDANDO_PAGAMENTO = 'aguardando_pagamento'
+    AGUARDANDO_CONFIRMACAO_MANUAL = 'aguardando_confirmacao_manual'
     PAGO = 'pago'
     PREPARANDO = 'preparando'
     PRONTO = 'pronto'
@@ -55,25 +58,35 @@ class OrigemPedido(str, enum.Enum):
     RESERVA = 'reserva'
 
 
+class MetodoPagamento(str, enum.Enum):
+    """Métodos de pagamento disponíveis"""
+
+    EMIS = 'emis'
+    DINHEIRO = 'dinheiro'
+    TRANSFERENCIA = 'transferencia'
+    POS = 'pos'
+    BOLETO = 'boleto'
+
+
 @mapped_as_dataclass(table_registry)
 class Pedido:
     __tablename__ = 'pedidos'
 
-    # ======================================================
+    # ============================================================
     # 1. CAMPOS OBRIGATÓRIOS (SEM VALOR PADRÃO)
-    # ======================================================
+    # ============================================================
     mesa_numero: Mapped[int] = mapped_column(Integer, nullable=False)
     cliente_nome: Mapped[str] = mapped_column(String(100), nullable=False)
     cliente_telefone: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    # ============================================================
+    # 2. CAMPOS COM VALOR PADRÃO (OPCIONAIS NO CONSTRUTOR)
+    # ============================================================
     cliente_tipo: Mapped[TipoCliente] = mapped_column(
         Enum(TipoCliente),
         nullable=False,
         default=TipoCliente.CONVIDADO,
-    )  # TEM DEFAULT → É OPCIONAL, mas pode ficar aqui se quiser
-
-    # ======================================================
-    # 2. CAMPOS COM VALOR PADRÃO (OPCIONAIS NO CONSTRUTOR)
-    # ======================================================
+    )
     total: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     status: Mapped[StatusPedido] = mapped_column(
         Enum(StatusPedido),
@@ -92,9 +105,28 @@ class Pedido:
         Integer, nullable=True, default=None
     )
 
-    # ======================================================
-    # 3. DADOS DE PAGAMENTO (OPCIONAIS)
-    # ======================================================
+    # ============================================================
+    # 3. CAMPOS DE PAGAMENTO (COM DEFAULT)
+    # ============================================================
+    pagamento_manual: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+    metodo_pagamento: Mapped[Optional[MetodoPagamento]] = mapped_column(
+        Enum(MetodoPagamento),
+        nullable=True,
+        default=None,
+    )
+    pagamento_autorizado_por: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
+        default=None,  # <--- ADICIONADO default=None
+    )
+
+    # ============================================================
+    # 4. DADOS DE PAGAMENTO (OPCIONAIS)
+    # ============================================================
     transacao_id: Mapped[Optional[str]] = mapped_column(
         String(100), nullable=True, default=None
     )
@@ -108,9 +140,9 @@ class Pedido:
         String(50), nullable=True, default=None
     )
 
-    # ======================================================
-    # 4. CHAVES ESTRANGEIRAS (OPCIONAIS)
-    # ======================================================
+    # ============================================================
+    # 5. CHAVES ESTRANGEIRAS (OPCIONAIS)
+    # ============================================================
     usuario_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('users.id'), nullable=True, default=None
     )
@@ -121,9 +153,9 @@ class Pedido:
         default=None,
     )
 
-    # ======================================================
-    # 5. CAMPOS DE IDENTIFICAÇÃO (init=False)
-    # ======================================================
+    # ============================================================
+    # 6. CAMPOS DE IDENTIFICAÇÃO (init=False)
+    # ============================================================
     id: Mapped[int] = mapped_column(
         init=False, primary_key=True, autoincrement=True
     )
@@ -136,9 +168,9 @@ class Pedido:
         default_factory=lambda: str(uuid.uuid4()),
     )
 
-    # ======================================================
-    # 6. TIMESTAMPS (init=False)
-    # ======================================================
+    # ============================================================
+    # 7. TIMESTAMPS (init=False)
+    # ============================================================
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )
@@ -146,9 +178,9 @@ class Pedido:
         init=False, server_default=func.now(), onupdate=func.now()
     )
 
-    # ======================================================
-    # 7. RELACIONAMENTOS (init=False)
-    # ======================================================
+    # ============================================================
+    # 8. RELACIONAMENTOS (init=False)
+    # ============================================================
     usuario: Mapped[Optional['User']] = relationship(
         'User',
         back_populates='pedidos',
@@ -160,5 +192,12 @@ class Pedido:
         back_populates='pedido',
         cascade='all, delete-orphan',
         lazy='selectin',
+        init=False,
+    )
+    reserva_mesa: Mapped[Optional['ReservaMesa']] = relationship(
+        'ReservaMesa',
+        back_populates='pedido',
+        lazy='selectin',
+        foreign_keys=[reserva_mesa_id],
         init=False,
     )

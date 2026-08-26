@@ -47,6 +47,11 @@ async def change_new_password(
     current_user: Current_user,
     auth_service: AuthServiceDep,
 ):
+    if current_user.public_id != public_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail="Você só pode alterar sua própria senha"
+        )
     try:
         data_password.validate_passwords()
 

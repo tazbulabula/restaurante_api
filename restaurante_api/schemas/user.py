@@ -1,12 +1,19 @@
+from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserType(str, Enum):
     CLIENT = 'client'
     ADMIN = 'admin'
+
+
+class UserTypeUpdate(BaseModel):
+    """Schema para atualização do tipo de usuário"""
+
+    user_type: str
 
 
 class UserSchema(BaseModel):
@@ -33,6 +40,8 @@ class UserPublic(BaseModel):
     phone: Optional[str] = None
     user_type: str
     public_id: str
+    is_active: Optional[bool] = True
+    deleted_at: Optional[datetime] = None
 
 
 class UserList(BaseModel):
@@ -57,8 +66,21 @@ class UserFilterSchema(BaseModel):
     phone: Optional[str] = None
     is_active: Optional[bool] = None
 
+    # NOVOS CAMPOS
+    search: Optional[str] = Field(
+        None, description='Buscar por nome, email ou telefone'
+    )
+    user_type: Optional[str] = Field(
+        None, description='Filtrar por tipo (admin/client)'
+    )
+    active_only: bool = Field(True, description='Apenas usuários ativos')
+    include_deleted: bool = Field(
+        False, description='Incluir usuários deletados'
+    )
+    limit: int = Field(50, ge=1, le=100, description='Limite de resultados')
+    offset: int = Field(0, ge=0, description='Pular N resultados')
+
     class Config:
-        # Permite usar o schema como kwargs
         arbitrary_types_allowed = True
 
     def to_filters_dict(self) -> dict:

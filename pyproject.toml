@@ -6,7 +6,7 @@ authors = [
     {name = "tazbulabula",email = "147341796+tazbulabula@users.noreply.github.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.14,<4.0"
+requires-python = ">=3.11,<3.15"
 dependencies = [
     "fastapi[standard] (>=0.141.1,<0.142.0)",
     "sqlalchemy[asyncio] (>=2.0.52,<3.0.0)",
@@ -16,9 +16,11 @@ dependencies = [
     "pyjwt (>=2.13.0,<3.0.0)",
     "tzdata (>=2026.3,<2027.0)",
     "aiosqlite (>=0.22.1,<0.23.0)",
-    "freezegun (>=1.5.5,<2.0.0)",
     "aiosmtplib (>=5.1.2,<6.0.0)",
-    "pytest-asyncio (>=1.4.0,<2.0.0)",
+    "python-multipart (>=0.0.20,<0.1.0)",
+    "python-dotenv (>=1.0.0,<2.0.0)",
+    "httpx (>=0.28.0,<1.0.0)",
+    "jinja2 (>=3.1.0,<4.0.0)",
 
 ]
 
@@ -34,7 +36,8 @@ dev = [
     "pytest-cov (>=7.1.0,<8.0.0)",
     "taskipy (>=1.14.1,<2.0.0)",
     "pytest-asyncio (>=1.4.0,<2.0.0)",
-    "factory-boy (>=3.3.3,<4.0.0)"
+    "factory-boy (>=3.3.3,<4.0.0)",
+    "freezegun (>=1.5.5,<2.0.0)",
 ]
 
 [tool.ruff]

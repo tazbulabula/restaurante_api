@@ -28,11 +28,21 @@ class CRUDMixin(BaseMixin[ModelType], Generic[ModelType]):
         )
         return result.scalar_one_or_none()
 
-    async def get_by_public_id(self, public_id: str) -> Optional[ModelType]:
+    async def get_by_public_id(
+        self,
+        public_id: str,
+        include_deleted: bool = False,
+    ) -> Optional[ModelType]:
         if hasattr(self._model, 'public_id'):
-            result = await self._session.execute(
-                select(self._model).where(self._model.public_id == public_id)
+            query = select(self._model).where(
+                self._model.public_id == public_id
             )
+
+            # ✅ Filtrar deletados se o modelo tiver deleted_at
+            if not include_deleted and hasattr(self._model, 'deleted_at'):
+                query = query.where(self._model.deleted_at.is_(None))
+
+            result = await self._session.execute(query)
             return result.scalar_one_or_none()
         raise AttributeError("Model has no attribute 'public_id'")
 

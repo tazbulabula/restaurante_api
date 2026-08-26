@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,7 +20,7 @@ class Settings(BaseSettings):
     MAIL_FROM: str
     MAIL_FROM_NAME: str
 
-    FRONTEND_URL: str = 'http://localhost:3000'
+    FRONTEND_URL: str = 'http://localhost:5173'
 
     ENVIRONMENT: str = 'development'
 
@@ -28,14 +30,25 @@ class Settings(BaseSettings):
     # ============================================================
     # EMIS/vPOS - Configurações para Angola
     # ============================================================
-    EMIS_API_URL: str = "https://apis.emis.co.ao"
-    EMIS_POS_ID: str = ""  # ID do ponto de venda
-    EMIS_MERCHANT_TOKEN: str = ""  # Token do comerciante
-    EMIS_SUPERVISOR_CARD: str = ""  # Cartão do supervisor
-    EMIS_CALLBACK_URL: str = "http://localhost:8000/api/pagamento/callback"
+    EMIS_API_URL: str = 'https://apis.emis.co.ao'
+    EMIS_POS_ID: str = ''  # ID do ponto de venda
+    EMIS_MERCHANT_TOKEN: str = ''  # Token do comerciante
+    EMIS_SUPERVISOR_CARD: str = ''  # Cartão do supervisor
+    EMIS_CALLBACK_URL: str = 'http://localhost:8000/api/pagamento/callback'
 
     # ============================================================
     # Timeouts e Configurações
     # ============================================================
     PAGAMENTO_TIMEOUT_SEGUNDOS: int = 30
     PAGAMENTO_TENTATIVAS_MAX: int = 3
+
+    # CORS
+    CORS_ORIGINS: List[str] = [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:3000',
+        'https://seu-frontend.vercel.app'
+    ]
+
+
+settings = Settings()

@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
+from sqlalchemy import select
 
 from restaurante_api.models.mesa import Mesa, StatusMesa
 from restaurante_api.models.pedido import Pedido, StatusPedido
@@ -23,8 +24,8 @@ async def pedido_pendente(session, user, produtos_base):
 
     pedido = Pedido(
         mesa_numero=1,
-        cliente_nome="Cliente Teste",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Cliente Teste',
+        cliente_telefone='+244 999 999 999',
         usuario_id=user.id,
         total=produto.price * 2,
         status=StatusPedido.AGUARDANDO_PAGAMENTO,
@@ -47,8 +48,8 @@ async def pedido_pendente_com_reserva(session, user, produtos_base):
     reserva = ReservaMesa(
         mesa_id=mesa.id,
         usuario_id=user.id,
-        cliente_nome="Cliente Reserva",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Cliente Reserva',
+        cliente_telefone='+244 999 999 999',
         data_hora=datetime.now() + timedelta(days=1),
         numero_pessoas=2,
         status=StatusMesa.RESERVADA,
@@ -62,8 +63,8 @@ async def pedido_pendente_com_reserva(session, user, produtos_base):
 
     pedido = Pedido(
         mesa_numero=1,
-        cliente_nome="Cliente Teste",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Cliente Teste',
+        cliente_telefone='+244 999 999 999',
         usuario_id=user.id,
         total=produto.price,
         status=StatusPedido.AGUARDANDO_PAGAMENTO,
@@ -79,24 +80,25 @@ async def pedido_pendente_com_reserva(session, user, produtos_base):
 # TESTES DE INICIAR PAGAMENTO
 # ============================================================
 
+
 @pytest.mark.asyncio
 async def test_iniciar_pagamento_sucesso(
-        client, session, token, pedido_pendente
+    client, session, token, pedido_pendente
 ):
     """Testa início de pagamento com sucesso"""
     request_data = {
-        "pedido_public_id": pedido_pendente.public_id,
-        "telefone": "+244 999 999 999",
+        'pedido_public_id': pedido_pendente.public_id,
+        'telefone': '+244 999 999 999',
     }
 
     # Mock do serviço EMIS
     with patch(
-            "restaurante_api.services.pagamento.EMISService.iniciar_pagamento"
+        'restaurante_api.services.pagamento.EMISService.iniciar_pagamento'
     ) as mock_iniciar:
         mock_iniciar.return_value = {
-            "transacao_id": "TRX123456",
-            "status": "PENDENTE",
-            "mensagem": "Pagamento iniciado com sucesso",
+            'transacao_id': 'TRX123456',
+            'status': 'PENDENTE',
+            'mensagem': 'Pagamento iniciado com sucesso',
         }
 
         response = client.post(
@@ -107,23 +109,23 @@ async def test_iniciar_pagamento_sucesso(
 
     assert response.status_code == HTTPStatus.OK
     data = response.json()
-    assert data['transacao_id'] == "TRX123456"
+    assert data['transacao_id'] == 'TRX123456'
     assert data['pedido_public_id'] == pedido_pendente.public_id
     assert data['valor'] == pedido_pendente.total
-    assert data['status'] == "PENDENTE"
+    assert data['status'] == 'PENDENTE'
 
     # Verifica que o pedido foi atualizado
     await session.refresh(pedido_pendente)
-    assert pedido_pendente.transacao_id == "TRX123456"
-    assert pedido_pendente.cliente_telefone == "+244 999 999 999"
+    assert pedido_pendente.transacao_id == 'TRX123456'
+    assert pedido_pendente.cliente_telefone == '+244 999 999 999'
 
 
 @pytest.mark.asyncio
 async def test_iniciar_pagamento_sem_autenticacao(client):
     """Testa início de pagamento sem token (deve falhar)"""
     request_data = {
-        "pedido_public_id": "fake-id",
-        "telefone": "+244 999 999 999",
+        'pedido_public_id': 'fake-id',
+        'telefone': '+244 999 999 999',
     }
 
     response = client.post('/pagamento/iniciar', json=request_data)
@@ -134,8 +136,8 @@ async def test_iniciar_pagamento_sem_autenticacao(client):
 async def test_iniciar_pagamento_pedido_inexistente(client, token):
     """Testa início de pagamento com pedido inexistente"""
     request_data = {
-        "pedido_public_id": "00000000-0000-0000-0000-000000000000",
-        "telefone": "+244 999 999 999",
+        'pedido_public_id': '00000000-0000-0000-0000-000000000000',
+        'telefone': '+244 999 999 999',
     }
 
     response = client.post(
@@ -150,14 +152,17 @@ async def test_iniciar_pagamento_pedido_inexistente(client, token):
 
 @pytest.mark.asyncio
 async def test_iniciar_pagamento_pedido_outro_usuario(
-        client, session, token, admin_user,
+    client,
+    session,
+    token,
+    admin_user,
 ):
     """Testa início de pagamento de pedido de outro usuário (deve falhar)"""
     # Cria pedido de outro usuário
     pedido = Pedido(
         mesa_numero=1,
-        cliente_nome="Pedido Admin",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Pedido Admin',
+        cliente_telefone='+244 999 999 999',
         usuario_id=admin_user.id,
         total=100.00,
         status=StatusPedido.AGUARDANDO_PAGAMENTO,
@@ -167,8 +172,8 @@ async def test_iniciar_pagamento_pedido_outro_usuario(
     await session.refresh(pedido)
 
     request_data = {
-        "pedido_public_id": pedido.public_id,
-        "telefone": "+244 999 999 999",
+        'pedido_public_id': pedido.public_id,
+        'telefone': '+244 999 999 999',
     }
 
     response = client.post(
@@ -186,8 +191,8 @@ async def test_iniciar_pagamento_pedido_ja_pago(client, session, token, user):
     """Testa início de pagamento de pedido já pago (deve falhar)"""
     pedido = Pedido(
         mesa_numero=1,
-        cliente_nome="Cliente Teste",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Cliente Teste',
+        cliente_telefone='+244 999 999 999',
         usuario_id=user.id,
         total=100.00,
         status=StatusPedido.PAGO,
@@ -197,8 +202,8 @@ async def test_iniciar_pagamento_pedido_ja_pago(client, session, token, user):
     await session.refresh(pedido)
 
     request_data = {
-        "pedido_public_id": pedido.public_id,
-        "telefone": "+244 999 999 999",
+        'pedido_public_id': pedido.public_id,
+        'telefone': '+244 999 999 999',
     }
 
     response = client.post(
@@ -216,8 +221,8 @@ async def test_iniciar_pagamento_valor_invalido(client, session, token, user):
     """Testa início de pagamento com valor inválido (deve falhar)"""
     pedido = Pedido(
         mesa_numero=1,
-        cliente_nome="Cliente Teste",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Cliente Teste',
+        cliente_telefone='+244 999 999 999',
         usuario_id=user.id,
         total=0.00,
         status=StatusPedido.AGUARDANDO_PAGAMENTO,
@@ -227,8 +232,8 @@ async def test_iniciar_pagamento_valor_invalido(client, session, token, user):
     await session.refresh(pedido)
 
     request_data = {
-        "pedido_public_id": pedido.public_id,
-        "telefone": "+244 999 999 999",
+        'pedido_public_id': pedido.public_id,
+        'telefone': '+244 999 999 999',
     }
 
     response = client.post(
@@ -238,27 +243,28 @@ async def test_iniciar_pagamento_valor_invalido(client, session, token, user):
     )
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert 'valor inválido' in response.json()['detail'].lower()
+    assert 'valor do pedido inválido' in response.json()['detail'].lower()
 
 
 # ============================================================
 # TESTES DE CALLBACK
 # ============================================================
 
+
 @pytest.mark.asyncio
 async def test_callback_pagamento_aprovado(client, session, pedido_pendente):
     """Testa callback de pagamento aprovado"""
     callback_data = {
-        "transacao_id": "TRX123456",
-        "status": "APROVADO",
-        "valor": pedido_pendente.total,
-        "codigo_autorizacao": "AUTH123",
-        "mensagem": "Pagamento aprovado",
-        "data_hora": datetime.now().isoformat(),
+        'transacao_id': 'TRX123456',
+        'status': 'APROVADO',
+        'valor': pedido_pendente.total,
+        'codigo_autorizacao': 'AUTH123',
+        'mensagem': 'Pagamento aprovado',
+        'data_hora': datetime.now().isoformat(),
     }
 
     # Salva o transacao_id no pedido
-    pedido_pendente.transacao_id = "TRX123456"
+    pedido_pendente.transacao_id = 'TRX123456'
     await session.commit()
 
     response = client.post(
@@ -268,36 +274,41 @@ async def test_callback_pagamento_aprovado(client, session, pedido_pendente):
 
     assert response.status_code == HTTPStatus.OK
     data = response.json()
-    assert data['status'] == "OK"
-    assert data['transacao_id'] == "TRX123456"
+    assert data['status'] == 'OK'
+    assert data['transacao_id'] == 'TRX123456'
 
     # Aguarda processamento em background
     await asyncio.sleep(0.5)
 
-    # Verifica que o pedido foi atualizado
-    await session.refresh(pedido_pendente)
-    assert pedido_pendente.status == StatusPedido.PAGO
-    assert pedido_pendente.codigo_autorizacao == "AUTH123"
+    # BUSCA O PEDIDO NOVAMENTE (em vez de refresh)
+    query = select(Pedido).where(Pedido.id == pedido_pendente.id)
+    result = await session.execute(query)
+    pedido_atualizado = result.scalar_one_or_none()
+
+    assert pedido_atualizado is not None
+    assert pedido_atualizado.status == StatusPedido.PAGO
+    assert pedido_atualizado.codigo_autorizacao == 'AUTH123'
 
 
 @pytest.mark.asyncio
 async def test_callback_pagamento_aprovado_com_reserva(
-        client, session, pedido_pendente_com_reserva
+    client, session, pedido_pendente_com_reserva
 ):
     """Testa callback de pagamento aprovado com reserva associada"""
     pedido, reserva = pedido_pendente_com_reserva
+    pedido_id = pedido.id
 
     callback_data = {
-        "transacao_id": "TRX123456",
-        "status": "APROVADO",
-        "valor": pedido.total,
-        "codigo_autorizacao": "AUTH123",
-        "mensagem": "Pagamento aprovado",
-        "data_hora": datetime.now().isoformat(),
+        'transacao_id': 'TRX123456',
+        'status': 'APROVADO',
+        'valor': pedido.total,
+        'codigo_autorizacao': 'AUTH123',
+        'mensagem': 'Pagamento aprovado',
+        'data_hora': datetime.now().isoformat(),
     }
 
     # Salva o transacao_id no pedido
-    pedido.transacao_id = "TRX123456"
+    pedido.transacao_id = 'TRX123456'
     await session.commit()
 
     response = client.post(
@@ -310,28 +321,43 @@ async def test_callback_pagamento_aprovado_com_reserva(
     # Aguarda processamento em background
     await asyncio.sleep(0.5)
 
-    # Verifica que o pedido foi atualizado
-    await session.refresh(pedido)
-    assert pedido.status == StatusPedido.PAGO
+    # Busca o pedido atualizado
+    query = select(Pedido).where(Pedido.id == pedido_id)
+    result = await session.execute(query)
+    pedido_atualizado = result.scalar_one_or_none()
 
-    # Verifica que a reserva foi confirmada
-    await session.refresh(reserva)
-    assert reserva.status == StatusMesa.CONFIRMADA
+    assert pedido_atualizado is not None
+    assert pedido_atualizado.status == StatusPedido.PAGO
+    assert pedido_atualizado.codigo_autorizacao == 'AUTH123'
+
+    # Busca a reserva atualizada
+    query_reserva = select(ReservaMesa).where(ReservaMesa.id == reserva.id)
+    result_reserva = await session.execute(query_reserva)
+    reserva_atualizada = result_reserva.scalar_one_or_none()
+
+    assert reserva_atualizada is not None
+    assert reserva_atualizada.status == StatusMesa.CONFIRMADA
+
+
+# ============================================================
+# TESTE: CALLBACK REJEITADO
+# ============================================================
 
 
 @pytest.mark.asyncio
 async def test_callback_pagamento_rejeitado(client, session, pedido_pendente):
     """Testa callback de pagamento rejeitado"""
+    pedido_id = pedido_pendente.id
+
     callback_data = {
-        "transacao_id": "TRX123456",
-        "status": "REJEITADO",
-        "valor": pedido_pendente.total,
-        "mensagem": "Saldo insuficiente",
-        "data_hora": datetime.now().isoformat(),
+        'transacao_id': 'TRX123456',
+        'status': 'REJEITADO',
+        'valor': pedido_pendente.total,
+        'mensagem': 'Saldo insuficiente',
+        'data_hora': datetime.now().isoformat(),
     }
 
-    # Salva o transacao_id no pedido
-    pedido_pendente.transacao_id = "TRX123456"
+    pedido_pendente.transacao_id = 'TRX123456'
     await session.commit()
 
     response = client.post(
@@ -341,27 +367,36 @@ async def test_callback_pagamento_rejeitado(client, session, pedido_pendente):
 
     assert response.status_code == HTTPStatus.OK
 
-    # Aguarda processamento em background
     await asyncio.sleep(0.5)
 
-    # Verifica que o pedido continua aguardando pagamento
-    await session.refresh(pedido_pendente)
-    assert pedido_pendente.status == StatusPedido.AGUARDANDO_PAGAMENTO
+    # Busca o pedido atualizado
+    query = select(Pedido).where(Pedido.id == pedido_id)
+    result = await session.execute(query)
+    pedido_atualizado = result.scalar_one_or_none()
+
+    assert pedido_atualizado is not None
+    assert pedido_atualizado.status == StatusPedido.AGUARDANDO_PAGAMENTO
+
+
+# ============================================================
+# TESTE: CALLBACK CANCELADO
+# ============================================================
 
 
 @pytest.mark.asyncio
 async def test_callback_pagamento_cancelado(client, session, pedido_pendente):
     """Testa callback de pagamento cancelado"""
+    pedido_id = pedido_pendente.id
+
     callback_data = {
-        "transacao_id": "TRX123456",
-        "status": "CANCELADO",
-        "valor": pedido_pendente.total,
-        "mensagem": "Pagamento cancelado pelo usuário",
-        "data_hora": datetime.now().isoformat(),
+        'transacao_id': 'TRX123456',
+        'status': 'CANCELADO',
+        'valor': pedido_pendente.total,
+        'mensagem': 'Pagamento cancelado pelo usuário',
+        'data_hora': datetime.now().isoformat(),
     }
 
-    # Salva o transacao_id no pedido
-    pedido_pendente.transacao_id = "TRX123456"
+    pedido_pendente.transacao_id = 'TRX123456'
     await session.commit()
 
     response = client.post(
@@ -371,22 +406,30 @@ async def test_callback_pagamento_cancelado(client, session, pedido_pendente):
 
     assert response.status_code == HTTPStatus.OK
 
-    # Aguarda processamento em background
     await asyncio.sleep(0.5)
 
-    # Verifica que o pedido continua aguardando pagamento
-    await session.refresh(pedido_pendente)
-    assert pedido_pendente.status == StatusPedido.AGUARDANDO_PAGAMENTO
+    # Busca o pedido atualizado
+    query = select(Pedido).where(Pedido.id == pedido_id)
+    result = await session.execute(query)
+    pedido_atualizado = result.scalar_one_or_none()
+
+    assert pedido_atualizado is not None
+    assert pedido_atualizado.status == StatusPedido.AGUARDANDO_PAGAMENTO
+
+
+# ============================================================
+# TESTE: CALLBACK COM PEDIDO NÃO ENCONTRADO
+# ============================================================
 
 
 @pytest.mark.asyncio
 async def test_callback_pedido_nao_encontrado(client):
     """Testa callback com transacao_id não encontrado"""
     callback_data = {
-        "transacao_id": "TRX_INEXISTENTE",
-        "status": "APROVADO",
-        "valor": 100.00,
-        "data_hora": datetime.now().isoformat(),
+        'transacao_id': 'TRX_INEXISTENTE',
+        'status': 'APROVADO',
+        'valor': 100.00,
+        'data_hora': datetime.now().isoformat(),
     }
 
     response = client.post('/pagamento/callback', json=callback_data)
@@ -396,13 +439,108 @@ async def test_callback_pedido_nao_encontrado(client):
 
 
 # ============================================================
+# TESTE: CALLBACK COM STATUS DESCONHECIDO
+# ============================================================
+
+
+@pytest.mark.asyncio
+async def test_callback_pagamento_status_desconhecido(
+    client, session, pedido_pendente
+):
+    """Testa callback com status desconhecido"""
+    pedido_id = pedido_pendente.id
+
+    callback_data = {
+        'transacao_id': 'TRX123456',
+        'status': 'DESCONHECIDO',
+        'valor': pedido_pendente.total,
+        'mensagem': 'Status não reconhecido',
+        'data_hora': datetime.now().isoformat(),
+    }
+
+    pedido_pendente.transacao_id = 'TRX123456'
+    await session.commit()
+
+    response = client.post(
+        '/pagamento/callback',
+        json=callback_data,
+    )
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    await asyncio.sleep(0.5)
+
+    # Busca o pedido atualizado
+    query = select(Pedido).where(Pedido.id == pedido_id)
+    result = await session.execute(query)
+    pedido_atualizado = result.scalar_one_or_none()
+
+    # O status não deve mudar para status desconhecido
+    assert pedido_atualizado is not None
+    assert pedido_atualizado.status == StatusPedido.AGUARDANDO_PAGAMENTO
+
+
+# ============================================================
+# TESTE: CALLBACK COM PEDIDO JÁ PROCESSADO
+# ============================================================
+
+
+@pytest.mark.asyncio
+async def test_callback_pagamento_pedido_ja_processado(
+    client, session, pedido_pendente
+):
+    """Testa callback para pedido já processado"""
+    pedido_id = pedido_pendente.id
+
+    # Simula um pedido já processado (PAGO)
+    pedido_pendente.status = StatusPedido.PAGO
+    pedido_pendente.transacao_id = 'TRX123456'
+    pedido_pendente.codigo_autorizacao = 'AUTH123'
+    pedido_pendente.pagamento_dados = {
+        'status': 'APROVADO',
+        'valor': pedido_pendente.total,
+    }
+    pedido_pendente.pagamento_confirmado_em = datetime.now()
+    await session.commit()
+
+    callback_data = {
+        'transacao_id': 'TRX123456',
+        'status': 'APROVADO',
+        'valor': pedido_pendente.total,
+        'codigo_autorizacao': 'AUTH456',
+        'mensagem': 'Pagamento aprovado novamente',
+        'data_hora': datetime.now().isoformat(),
+    }
+
+    response = client.post(
+        '/pagamento/callback',
+        json=callback_data,
+    )
+
+    assert response.status_code == HTTPStatus.OK
+
+    await asyncio.sleep(0.5)
+
+    # Busca o pedido atualizado
+    query = select(Pedido).where(Pedido.id == pedido_id)
+    result = await session.execute(query)
+    pedido_atualizado = result.scalar_one_or_none()
+
+    assert pedido_atualizado is not None
+    assert pedido_atualizado.status == StatusPedido.PAGO
+
+    # O código de autorização NÃO deve ser sobrescrito
+    # (o callback ignora porque o pedido já está processado)
+    assert pedido_atualizado.codigo_autorizacao == 'AUTH123'
+
+
+# ============================================================
 # TESTES DE CONSULTAR STATUS
 # ============================================================
 
+
 @pytest.mark.asyncio
-async def test_consultar_status_pagamento(
-        client, token, pedido_pendente
-):
+async def test_consultar_status_pagamento(client, token, pedido_pendente):
     """Testa consulta de status do pagamento"""
     response = client.get(
         f'/pagamento/status/{pedido_pendente.public_id}',
@@ -422,14 +560,14 @@ async def test_consultar_status_pagamento_pago(client, session, token, user):
     """Testa consulta de status de pedido pago"""
     pedido = Pedido(
         mesa_numero=1,
-        cliente_nome="Cliente Teste",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Cliente Teste',
+        cliente_telefone='+244 999 999 999',
         usuario_id=user.id,
         total=100.00,
         status=StatusPedido.PAGO,
-        transacao_id="TRX123456",
+        transacao_id='TRX123456',
         pagamento_confirmado_em=datetime.now(),
-        codigo_autorizacao="AUTH123",
+        codigo_autorizacao='AUTH123',
     )
     session.add(pedido)
     await session.commit()
@@ -443,24 +581,24 @@ async def test_consultar_status_pagamento_pago(client, session, token, user):
     assert response.status_code == HTTPStatus.OK
     data = response.json()
     assert data['status_pedido'] == 'pago'
-    assert data['transacao_id'] == "TRX123456"
-    assert data['codigo_autorizacao'] == "AUTH123"
+    assert data['transacao_id'] == 'TRX123456'
+    assert data['codigo_autorizacao'] == 'AUTH123'
     assert 'Pagamento confirmado' in data['mensagem']
 
 
 @pytest.mark.asyncio
 async def test_consultar_status_pagamento_entregue(
-        client, session, token, user
+    client, session, token, user
 ):
     """Testa consulta de status de pedido entregue"""
     pedido = Pedido(
         mesa_numero=1,
-        cliente_nome="Cliente Teste",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Cliente Teste',
+        cliente_telefone='+244 999 999 999',
         usuario_id=user.id,
         total=100.00,
         status=StatusPedido.ENTREGUE,
-        transacao_id="TRX123456",
+        transacao_id='TRX123456',
         pagamento_confirmado_em=datetime.now(),
     )
     session.add(pedido)
@@ -480,13 +618,13 @@ async def test_consultar_status_pagamento_entregue(
 
 @pytest.mark.asyncio
 async def test_consultar_status_pagamento_cancelado(
-        client, session, token, user
+    client, session, token, user
 ):
     """Testa consulta de status de pedido cancelado"""
     pedido = Pedido(
         mesa_numero=1,
-        cliente_nome="Cliente Teste",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Cliente Teste',
+        cliente_telefone='+244 999 999 999',
         usuario_id=user.id,
         total=100.00,
         status=StatusPedido.CANCELADO,
@@ -520,13 +658,13 @@ async def test_consultar_status_pagamento_nao_encontrado(client, token):
 
 @pytest.mark.asyncio
 async def test_consultar_status_pagamento_sem_permissao(
-        client, session, token, admin_user
+    client, session, token, admin_user
 ):
     """Testa consulta de status de pedido de outro usuário (deve falhar)"""
     pedido = Pedido(
         mesa_numero=1,
-        cliente_nome="Pedido Admin",
-        cliente_telefone="+244 999 999 999",
+        cliente_nome='Pedido Admin',
+        cliente_telefone='+244 999 999 999',
         usuario_id=admin_user.id,
         total=100.00,
         status=StatusPedido.AGUARDANDO_PAGAMENTO,
@@ -548,23 +686,24 @@ async def test_consultar_status_pagamento_sem_permissao(
 # TESTES DE ADMIN PODE VER TODOS
 # ============================================================
 
+
 @pytest.mark.asyncio
 async def test_iniciar_pagamento_admin_por_outro_usuario(
-        client, token, pedido_pendente
+    client, token, pedido_pendente
 ):
     """Testa que admin pode iniciar pagamento de pedido de outro usuário"""
     request_data = {
-        "pedido_public_id": pedido_pendente.public_id,
-        "telefone": "+244 999 999 999",
+        'pedido_public_id': pedido_pendente.public_id,
+        'telefone': '+244 999 999 999',
     }
 
     with patch(
-            "restaurante_api.services.pagamento.EMISService.iniciar_pagamento"
+        'restaurante_api.services.pagamento.EMISService.iniciar_pagamento'
     ) as mock_iniciar:
         mock_iniciar.return_value = {
-            "transacao_id": "TRX123456",
-            "status": "PENDENTE",
-            "mensagem": "Pagamento iniciado com sucesso",
+            'transacao_id': 'TRX123456',
+            'status': 'PENDENTE',
+            'mensagem': 'Pagamento iniciado com sucesso',
         }
 
         response = client.post(
@@ -575,12 +714,12 @@ async def test_iniciar_pagamento_admin_por_outro_usuario(
 
     assert response.status_code == HTTPStatus.OK
     data = response.json()
-    assert data['transacao_id'] == "TRX123456"
+    assert data['transacao_id'] == 'TRX123456'
 
 
 @pytest.mark.asyncio
 async def test_consultar_status_admin_por_outro_usuario(
-        client, admin_token, pedido_pendente
+    client, admin_token, pedido_pendente
 ):
     """Testa que admin pode consultar status de pedido de outro usuário"""
     response = client.get(

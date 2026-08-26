@@ -556,7 +556,7 @@ async def test_cancelar_reserva_ja_finalizada(
 # ============================================================
 
 
-'''@pytest.mark.asyncio
+@pytest.mark.asyncio
 async def test_minhas_reservas(client, session, token, user):
     """Testa listagem de minhas reservas"""
     mesa = Mesa(numero=1, capacidade=4)
@@ -588,14 +588,14 @@ async def test_minhas_reservas(client, session, token, user):
     await session.commit()
 
     response = client.get(
-        '/reservas/minhas', headers={'Authorization': f'Bearer {token}'}
+        '/reservas/listar/minhas', headers={'Authorization': f'Bearer {token}'}
     )
-    breakpoint()
+
     assert response.status_code == HTTPStatus.OK
     data = response.json()
 
     assert len(data) == int(1)
-    assert data[0]['cliente_nome'] == 'Minha Reserva 1'''
+    assert data[0]['cliente_nome'] == 'Minha Reserva 1'
 
 
 # ============================================================

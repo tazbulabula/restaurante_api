@@ -1,11 +1,11 @@
-<!-- templates/email/reset_password.html -->
+<!-- templates/email/welcome.html -->
 
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redefinição de Senha</title>
+    <title>Bem-vindo ao Restaurante Aurora</title>
     <style>
         * {
             margin: 0;
@@ -55,6 +55,29 @@
             line-height: 1.6;
             margin-bottom: 16px;
         }
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .feature-item {
+            background: #fdf7e6;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #f0e7d9;
+        }
+        .feature-item .icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .feature-item .label {
+            font-size: 13px;
+            color: #6c4230;
+            font-weight: 500;
+        }
         .button {
             display: inline-block;
             padding: 14px 32px;
@@ -66,21 +89,10 @@
             font-size: 16px;
             box-shadow: 0 4px 15px rgba(212, 168, 46, 0.3);
             transition: all 0.3s ease;
-            text-align: center;
         }
         .button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(212, 168, 46, 0.4);
-        }
-        .link-container {
-            background-color: #f8f3ee;
-            padding: 16px;
-            border-radius: 8px;
-            word-break: break-all;
-            font-size: 13px;
-            color: #6c4230;
-            margin: 16px 0;
-            border: 1px solid #f0e7d9;
         }
         .footer {
             border-top: 1px solid #f0e7d9;
@@ -94,9 +106,6 @@
             color: #d4a82e;
             text-decoration: none;
         }
-        .footer a:hover {
-            text-decoration: underline;
-        }
         .badge {
             display: inline-block;
             background: #f0e7d9;
@@ -105,6 +114,22 @@
             border-radius: 20px;
             font-size: 12px;
             margin-top: 8px;
+        }
+        .social-links {
+            margin-top: 16px;
+        }
+        .social-links a {
+            margin: 0 8px;
+            text-decoration: none;
+            font-size: 20px;
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            .features {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -116,35 +141,47 @@
         </div>
 
         <div class="content">
-            <h2>🔐 Redefinição de Senha</h2>
+            <h2>🎉 Bem-vindo, {{ name }}!</h2>
 
-            <p>Olá <strong>{{ name }}</strong>,</p>
-
-            <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>Restaurante Aurora</strong>.</p>
-
-            <p style="text-align: center; margin: 30px 0;">
-                <a href="{{ reset_link }}" class="button">
-                    🔑 Redefinir Senha
-                </a>
+            <p>
+                Estamos muito felizes em tê-lo como parte da nossa família no
+                <strong>Restaurante Aurora</strong>!
             </p>
 
-            <p style="text-align: center; color: #9c805a; font-size: 14px;">
-                Ou clique no link abaixo:
+            <p>
+                Com sua conta, você pode aproveitar todos os benefícios que preparamos
+                especialmente para você.
             </p>
 
-            <div class="link-container">
-                {{ reset_link }}
+            <div class="features">
+                <div class="feature-item">
+                    <span class="icon">🍽️</span>
+                    <span class="label">Fazer Pedidos</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📅</span>
+                    <span class="label">Reservar Mesas</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📋</span>
+                    <span class="label">Acompanhar Pedidos</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">⭐</span>
+                    <span class="label">Experiência Premium</span>
+                </div>
             </div>
 
-            <p style="font-size: 14px; color: #9c805a;">
-                ⏰ Este link é válido por <strong>1 hora</strong>.
-                <br>Se o link expirar, você precisará solicitar uma nova redefinição.
+            <p style="text-align: center; margin: 30px 0;">
+                <a href="{{ frontend_url }}" class="button">
+                    🚀 Explorar o Restaurante
+                </a>
             </p>
 
             <div style="background: #fdf7e6; padding: 16px; border-radius: 8px; border-left: 4px solid #d4a82e; margin: 20px 0;">
                 <p style="font-size: 14px; color: #6c4230; margin: 0;">
-                    ⚠️ <strong>Não solicitou esta redefinição?</strong>
-                    <br>Ignore este email. Sua senha permanecerá segura.
+                    💡 <strong>Dica:</strong> Faça seu primeiro pedido e ganhe
+                    <strong>10% de desconto</strong> na sua primeira compra!
                 </p>
             </div>
         </div>
@@ -158,6 +195,12 @@
                 📞 (244) 999 999 999 &bull;
                 📧 contato@aurora.ao
             </p>
+            <div class="social-links">
+                <a href="#" style="color: #4267B2;">📘</a>
+                <a href="#" style="color: #E4405F;">📸</a>
+                <a href="#" style="color: #1DA1F2;">🐦</a>
+                <a href="#" style="color: #25D366;">💬</a>
+            </div>
             <p style="margin-top: 12px;">
                 © {{ year }} Restaurante Aurora. Todos os direitos reservados.
             </p>

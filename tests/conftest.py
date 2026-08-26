@@ -12,6 +12,7 @@ from sqlalchemy.pool import StaticPool
 from restaurante_api.app import app
 from restaurante_api.core.database import get_session, table_registry
 from restaurante_api.core.security import hash_password
+from restaurante_api.models import CategoriaProduto, Produto
 from restaurante_api.models.user import User
 from restaurante_api.repositories.user import UserRepository
 from restaurante_api.schemas.user import UserType
@@ -197,3 +198,34 @@ def mock_session():
     session.flush = AsyncMock()
     session.refresh = AsyncMock()
     return session
+
+
+@pytest_asyncio.fixture
+async def produtos_base(session):
+    """Cria produtos base para testes"""
+    produtos = [
+        Produto(
+            name='Pizza',
+            price=2500.00,
+            category=CategoriaProduto.PRINCIPAL,
+            is_available=True,
+        ),
+        Produto(
+            name='Suco',
+            price=450.00,
+            category=CategoriaProduto.SUCOS,
+            is_available=True,
+        ),
+        Produto(
+            name='Cerveja',
+            price=380.00,
+            category=CategoriaProduto.CERVEJA,
+            is_available=True,
+        ),
+    ]
+    for p in produtos:
+        session.add(p)
+    await session.commit()
+    for p in produtos:
+        await session.refresh(p)
+    return produtos

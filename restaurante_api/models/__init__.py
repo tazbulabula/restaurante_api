@@ -5,6 +5,7 @@ from .mesa import Mesa, StatusMesa, TipoMesa
 from .pedido import OrigemPedido, Pedido, StatusPedido, TipoCliente
 from .produto import CategoriaProduto, Produto
 from .reserva_mesa import ReservaMesa
+from .reset_token import PasswordResetToken
 from .user import User
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     'TipoCliente',
     'OrigemPedido',
     'ItemPedido',
+    'PasswordResetToken',
 ]
