@@ -7,28 +7,9 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     envVars:
-      - key: DATABASE_URL
-        value: sqlite:///./database.db
+      # 🔒 Variáveis sensíveis (configure no painel)
       - key: SECRET_KEY
         sync: false
-      - key: ALGORITHM
-        value: HS256
-      - key: ENVIRONMENT
-        value: production
-      - key: FRONTEND_URL
-        sync: false
-      - key: EMIS_API_URL
-        value: https://apis.emis.co.ao
-      - key: EMIS_POS_ID
-        sync: false
-      - key: EMIS_MERCHANT_TOKEN
-        sync: false
-      - key: EMIS_SUPERVISOR_CARD
-        sync: false
-      - key: SMTP_HOST
-        value: smtp.gmail.com
-      - key: SMTP_PORT
-        value: 587
       - key: SMTP_USER
         sync: false
       - key: SMTP_PASSWORD
@@ -37,3 +18,25 @@ services:
         sync: false
       - key: MAIL_FROM_NAME
         sync: false
+      - key: EMIS_POS_ID
+        sync: false
+      - key: EMIS_MERCHANT_TOKEN
+        sync: false
+      - key: EMIS_SUPERVISOR_CARD
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+      # 🌐 Variáveis públicas (já no código)
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./database.db
+      - key: ALGORITHM
+        value: HS256
+      - key: ENVIRONMENT
+        value: production
+      - key: EMIS_API_URL
+        value: https://apis.emis.co.ao
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
