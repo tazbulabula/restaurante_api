@@ -1,6 +1,8 @@
 # scripts/seed.py
 
 import asyncio
+import sys
+from pathlib import Path
 
 from sqlalchemy import select
 
@@ -9,6 +11,8 @@ from restaurante_api.core.security import hash_password
 from restaurante_api.models.mesa import Mesa, TipoMesa
 from restaurante_api.models.produto import CategoriaProduto, Produto
 from restaurante_api.models.user import User, UserType
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 async def seed():
