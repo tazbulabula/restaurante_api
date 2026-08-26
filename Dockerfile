@@ -31,6 +31,15 @@ ENV PYTHONPATH="/app"
 RUN alembic upgrade head || true
 RUN python scripts/seed.py || true
 
+# Copia o entrypoint
+COPY entrypoint.sh .
+
+# Dá permissão de execução
+RUN chmod +x entrypoint.sh
+
+# Define o entrypoint
+ENTRYPOINT ["./entrypoint.sh"]
+
 # Expõe a porta
 EXPOSE 8000
 

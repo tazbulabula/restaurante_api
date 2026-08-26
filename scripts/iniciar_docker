@@ -1,0 +1,8 @@
+# 1. Adicionar os arquivos
+git add Dockerfile render.yaml .dockerignore README.md
+
+# 2. Fazer commit
+git commit -m "Adiciona Docker e configuração para deploy no Render"
+
+# 3. Push
+git push origin main

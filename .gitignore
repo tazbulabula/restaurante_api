@@ -158,6 +158,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.env.local
+.env.production
+.env.docker
 
 # Spyder project settings
 .spyderproject
