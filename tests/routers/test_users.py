@@ -14,7 +14,7 @@ def test_create_user(client):
     )
     data = response.json()
     assert response.status_code == HTTPStatus.CREATED
-    assert len(data) == int(5)
+    assert len(data) == int(7)
 
     assert data == {
         'username': data['username'],
@@ -22,6 +22,9 @@ def test_create_user(client):
         'phone': data['phone'],
         'user_type': data['user_type'],
         'public_id': data['public_id'],
+        'is_active': data['is_active'],
+        'deleted_at': data['deleted_at'],
+
     }
 
 

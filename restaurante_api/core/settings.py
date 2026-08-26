@@ -14,11 +14,13 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     SMTP_HOST: str = 'smtp.gmail.com'
-    SMTP_PORT: int = 587
+    SMTP_PORT: int = 465
     SMTP_USER: str
     SMTP_PASSWORD: str
     MAIL_FROM: str
     MAIL_FROM_NAME: str
+    SMTP_USE_TLS: bool = False
+    SMTP_USE_SSL: bool = True
 
     FRONTEND_URL: str = 'http://localhost:5173'
 

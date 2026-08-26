@@ -130,8 +130,8 @@ class EmailService:
                 port=settings.SMTP_PORT,
                 username=settings.SMTP_USER,
                 password=settings.SMTP_PASSWORD,
-                use_tls=False,
-                start_tls=True,
+                use_tls=settings.SMTP_USE_TLS,
+                start_tls=False,
                 timeout=30,
             )
         except aiosmtplib.SMTPAuthenticationError as e:

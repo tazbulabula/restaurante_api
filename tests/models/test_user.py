@@ -29,6 +29,7 @@ async def test_create_user(session, mock_db_time):
         'password': '1234',
         'phone': '+244921351606',
         'user_type': UserType.CLIENT,
+        'is_active': True,
         'created_at': time,
         'updated_at': time,
         'deleted_at': None,
