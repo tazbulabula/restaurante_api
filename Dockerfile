@@ -1,6 +1,7 @@
 # backend/Dockerfile
 
-FROM python:3.11-slim
+# ✅ Usa Python 3.14 (ou a versão que você quiser)
+FROM python:3.14-slim
 
 # Instala dependências do sistema
 RUN apt-get update && apt-get install -y \
@@ -24,8 +25,15 @@ RUN poetry config virtualenvs.create false \
 # Copia o código fonte
 COPY . .
 
+# Define PYTHONPATH para evitar ModuleNotFoundError
+ENV PYTHONPATH="${PYTHONPATH}:/app"
+
+# Executa migrações e seed durante o build
+RUN alembic upgrade head || true
+RUN python scripts/seed.py || true
+
 # Expõe a porta
 EXPOSE 8000
 
 # Comando para rodar o servidor
-CMD ["uvicorn", "restaurante_api.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "restaurante_api.app:app", "--host", "0.0.0.0", "--port", "8000"]

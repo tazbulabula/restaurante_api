@@ -1,24 +1,29 @@
-# backend/.dockerignore
+# .dockerignore
 
-__pycache__
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
 *.so
 *.egg
-*.egg-info
-dist
-build
-.venv
+*.egg-info/
+dist/
+build/
+.venv/
 .env
-.git
+database.db
+*.sqlite3
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+.git/
+.github/
 .gitignore
 README.md
-.DS_Store
+.dockerignore
+docker-compose.yml
 *.log
-.pytest_cache
-.coverage
-htmlcov
-.mypy_cache
-.ruff_cache
