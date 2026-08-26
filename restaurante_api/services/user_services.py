@@ -3,6 +3,7 @@
 from typing import List, Optional
 
 from restaurante_api.core.security import hash_password
+from restaurante_api.core.settings import settings
 from restaurante_api.models.user import UserType
 from restaurante_api.repositories.user import UserRepository
 from restaurante_api.schemas.user import (
@@ -31,10 +32,10 @@ class UserService:
     async def register_user(self, user_create: UserCreate):
         # Verifica se email já existe
         if await self.user_repo.email_exists(user_create.email):
-            raise ValueError('Email already in use by another user')
+            raise ValueError('Esse Email está sendo usado por outro User.')
 
         if await self.user_repo.username_exists(user_create.username):
-            raise ValueError('Username already exists')
+            raise ValueError('Este nome já existe.')
 
         # Cria usuário
         user = await self.user_repo.create(
@@ -46,12 +47,13 @@ class UserService:
         await self.user_repo.session.commit()
 
         # Envia email de boas-vindas
-        try:
-            await self.email_service.send_welcome_email(
-                to_email=user.email, name=user.username
-            )
-        except Exception as e:
-            print(f'Erro ao enviar email de boas-vindas: {e}')
+        if settings.ENVIRONMENT != "production":
+            try:
+                await self.email_service.send_welcome_email(
+                    to_email=user.email, name=user.username
+                )
+            except Exception as e:
+                print(f'Erro ao enviar email de boas-vindas: {e}')
 
         return user
 
