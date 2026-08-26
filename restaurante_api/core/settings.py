@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     EMIS_POS_ID: str = ''  # ID do ponto de venda
     EMIS_MERCHANT_TOKEN: str = ''  # Token do comerciante
     EMIS_SUPERVISOR_CARD: str = ''  # Cartão do supervisor
-    EMIS_CALLBACK_URL: str = 'http://localhost:8000/api/pagamento/callback'
+    EMIS_CALLBACK_URL: str = 'https://restaurante-api-a1kn.onrender.com/pagamento/callback'
 
     # ============================================================
     # Timeouts e Configurações
@@ -47,7 +47,7 @@ class Settings(BaseSettings):
         'http://localhost:5173',
         'http://127.0.0.1:5173',
         'http://localhost:3000',
-        'https://seu-frontend.vercel.app',
+        'https://restaurante-frontend-umber.vercel.app/',
     ]
 
 
