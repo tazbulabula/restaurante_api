@@ -62,7 +62,7 @@ class Produto:
     )
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
     image_url: Mapped[Optional[str]] = mapped_column(
-        String(200), nullable=True, default=None
+        String(500), nullable=True, default=None
     )
 
     # 3. CAMPOS DE IDENTIFICAÇÃO (init=False) - NÃO AFETAM A ORDEM

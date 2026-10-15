@@ -47,7 +47,7 @@ class UserService:
         await self.user_repo.session.commit()
 
         # Envia email de boas-vindas
-        if settings.ENVIRONMENT != "production":
+        if settings.ENVIRONMENT != 'production':
             try:
                 await self.email_service.send_welcome_email(
                     to_email=user.email, name=user.username

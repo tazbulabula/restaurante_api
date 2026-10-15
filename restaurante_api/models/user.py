@@ -35,7 +35,8 @@ class User:
     username: Mapped[str]
     email: Mapped[str] = mapped_column(unique=True, index=True)
     password: Mapped[str]
-    phone: Mapped[Optional[str]] = mapped_column(nullable=True)
+
+    phone: Mapped[Optional[str]] = mapped_column(nullable=True, default=None)
     user_type: Mapped[UserType] = mapped_column(
         nullable=False, default=UserType.CLIENT
     )

@@ -187,10 +187,9 @@ async def criar_reserva(
 
     # Cria a reserva com timeout de 15 minutos
     expira_em = datetime.now() + timedelta(minutes=15)
-    c = current_user.user_type != UserType.CLIENT
     reserva = ReservaMesa(
         mesa_id=reserva_data.mesa_id,
-        usuario_id=current_user.id if c else None,
+        usuario_id=current_user.id,
         cliente_nome=reserva_data.cliente_nome,
         cliente_telefone=reserva_data.cliente_telefone,
         data_hora=reserva_data.data_hora,

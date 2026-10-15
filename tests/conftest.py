@@ -12,6 +12,7 @@ from sqlalchemy.pool import StaticPool
 from restaurante_api.app import app
 from restaurante_api.core.database import get_session, table_registry
 from restaurante_api.core.security import hash_password
+from restaurante_api.core.settings import settings
 from restaurante_api.models import CategoriaProduto, Produto
 from restaurante_api.models.user import User
 from restaurante_api.repositories.user import UserRepository
@@ -229,3 +230,14 @@ async def produtos_base(session):
     for p in produtos:
         await session.refresh(p)
     return produtos
+
+
+@pytest.fixture(autouse=True)
+def _limpar_uploads():
+    yield
+    # remove ficheiros gerados durante o teste
+    pasta = settings.products_upload_path
+    if pasta.is_dir():
+        for f in pasta.iterdir():
+            if f.is_file():
+                f.unlink(missing_ok=True)

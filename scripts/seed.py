@@ -18,12 +18,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 async def seed():
     """Popula o banco de dados com dados iniciais"""
     async with AsyncSessionLocal() as session:
-        print('🌱 Iniciando seed do banco de dados...')
+        print(' Iniciando seed do banco de dados...')
 
         # ============================================================
         # 1. CRIAR USUÁRIO ADMIN
         # ============================================================
-        print('👤 Criando usuário admin...')
+        print(' Criando usuário admin...')
 
         query_admin = select(User).where(User.email == 'admin@restaurante.com')
         result = await session.execute(query_admin)
@@ -45,7 +45,7 @@ async def seed():
         # ============================================================
         # 2. CRIAR USUÁRIO COMUM (opcional)
         # ============================================================
-        print('👤 Criando usuário comum...')
+        print(' Criando usuário comum...')
 
         query_user = select(User).where(User.email == 'client@restaurante.com')
         result = await session.execute(query_user)
@@ -54,7 +54,7 @@ async def seed():
         if not user_existente:
             user = User(
                 username='cliente',
-                email='cliente@restaurante.com',
+                email='client@restaurante.com',
                 password=hash_password('cliente123'),
                 phone='+244 999 999 998',
                 user_type=UserType.CLIENT,
@@ -67,7 +67,7 @@ async def seed():
         # ============================================================
         # 3. CRIAR PRODUTOS
         # ============================================================
-        print('🍽️ Criando produtos...')
+        print(' Criando produtos...')
 
         produtos = [
             # Principais

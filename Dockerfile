@@ -2,12 +2,6 @@
 
 FROM python:3.14-slim
 
-# Instala dependências do sistema
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # Define o diretório de trabalho como /app (padrão)
 WORKDIR /app
 

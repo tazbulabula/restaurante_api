@@ -24,7 +24,6 @@ def test_create_user(client):
         'public_id': data['public_id'],
         'is_active': data['is_active'],
         'deleted_at': data['deleted_at'],
-
     }
 
 

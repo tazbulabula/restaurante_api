@@ -1,11 +1,25 @@
 # tests/routes/test_produtos.py
 
+import io
 from http import HTTPStatus
 
 import pytest
 from sqlalchemy import select
 
+from restaurante_api.core.settings import settings
 from restaurante_api.models.produto import CategoriaProduto, Produto
+
+
+def _fake_image_bytes(size_bytes: int = 1024) -> bytes:
+    """Gera bytes pseudo-imagem para testes."""
+    return b'\xff\xd8\xff\xe0' + b'\x00' * (size_bytes - 4)
+
+
+def _image_file(
+    filename: str = 'foto.jpg', size_bytes: int = 1024
+) -> tuple[str, io.BytesIO, str]:
+    """Devolve tuple pronta para `files=` do httpx."""
+    return (filename, io.BytesIO(_fake_image_bytes(size_bytes)), 'image/jpeg')
 
 
 @pytest.mark.asyncio
@@ -144,21 +158,21 @@ async def test_buscar_produto_public_id_nao_encontrado(client):
 
 @pytest.mark.asyncio
 async def test_criar_produto(client, session, admin_token):
-    """Testa criação de produto (admin)"""
-    produto_data = {
+    """Testa criação de produto (admin) com upload de imagem"""
+    form_data = {
         'name': 'Pizza Margherita',
         'description': 'Mussarela, tomate e manjericão',
-        'price': 2500.00,
+        'price': '2500.00',
         'category': 'principal',
         'subcategory': 'Massas',
-        'is_available': True,
-        'image_url': 'https://exemplo.com/pizza.jpg',
+        'is_available': 'true',
     }
 
     response = client.post(
         '/produtos/create',
         headers={'Authorization': f'Bearer {admin_token}'},
-        json=produto_data,
+        data=form_data,
+        files={'image': _image_file('pizza.jpg')},
     )
 
     assert response.status_code == HTTPStatus.CREATED
@@ -167,13 +181,44 @@ async def test_criar_produto(client, session, admin_token):
     assert data['price'] == float(2500.00)
     assert data['category'] == 'principal'
     assert data['public_id'] is not None
+    assert data['image_url'] is not None
+    assert data['image_url'].startswith('/static/produtos/')
+    assert data['image_url'].endswith('.jpg')
 
+    # Confirma no banco
     result = await session.execute(
         select(Produto).where(Produto.name == 'Pizza Margherita')
     )
     produto = result.scalar_one()
-    assert produto is not None
     assert produto.price == float(2500.00)
+
+    # Confirma que o ficheiro foi gravado
+    nome_ficheiro = data['image_url'].split('/')[-1]
+    caminho = settings.products_upload_path / nome_ficheiro
+    assert caminho.is_file()
+
+    # Cleanup
+    caminho.unlink(missing_ok=True)
+
+
+@pytest.mark.asyncio
+async def test_criar_produto_sem_imagem(client, session, admin_token):
+    """Testa criação de produto sem imagem (image_url fica None)"""
+    form_data = {
+        'name': 'Produto Sem Imagem',
+        'price': '100.00',
+        'category': 'bebida',
+    }
+
+    response = client.post(
+        '/produtos/create',
+        headers={'Authorization': f'Bearer {admin_token}'},
+        data=form_data,
+    )
+
+    assert response.status_code == HTTPStatus.CREATED
+    data = response.json()
+    assert data['image_url'] is None
 
 
 @pytest.mark.asyncio
@@ -194,16 +239,16 @@ async def test_criar_produto_sem_autenticacao(client):
 @pytest.mark.asyncio
 async def test_criar_produto_usuario_comum(client, token):
     """Testa criação de produto com usuário comum (deve falhar)"""
-    produto_data = {
+    form_data = {
         'name': 'Produto Usuario Comum',
-        'price': 100.00,
+        'price': '100.00',
         'category': 'principal',
     }
 
     response = client.post(
         '/produtos/create',
         headers={'Authorization': f'Bearer {token}'},
-        json=produto_data,
+        data=form_data,
     )
 
     assert response.status_code == HTTPStatus.FORBIDDEN
@@ -221,16 +266,16 @@ async def test_criar_produto_nome_duplicado(client, session, admin_token):
     session.add(produto)
     await session.commit()
 
-    produto_data = {
+    form_data = {
         'name': 'Produto Duplicado',
-        'price': 200.00,
+        'price': '200.00',
         'category': 'bebida',
     }
 
     response = client.post(
         '/produtos/create',
         headers={'Authorization': f'Bearer {admin_token}'},
-        json=produto_data,
+        data=form_data,
     )
 
     assert response.status_code == HTTPStatus.CONFLICT
@@ -240,16 +285,16 @@ async def test_criar_produto_nome_duplicado(client, session, admin_token):
 @pytest.mark.asyncio
 async def test_criar_produto_categoria_invalida(client, admin_token):
     """Testa criação de produto com categoria inválida"""
-    produto_data = {
+    form_data = {
         'name': 'Produto Invalido',
-        'price': 100.00,
+        'price': '100.00',
         'category': 'categoria_invalida',
     }
 
     response = client.post(
         '/produtos/create',
         headers={'Authorization': f'Bearer {admin_token}'},
-        json=produto_data,
+        data=form_data,
     )
 
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
@@ -258,16 +303,16 @@ async def test_criar_produto_categoria_invalida(client, admin_token):
 @pytest.mark.asyncio
 async def test_criar_produto_preco_negativo(client, admin_token):
     """Testa criação de produto com preço negativo"""
-    produto_data = {
+    form_data = {
         'name': 'Produto Errado',
-        'price': -100.00,
+        'price': '-100.00',
         'category': 'bebida',
     }
 
     response = client.post(
         '/produtos/create',
         headers={'Authorization': f'Bearer {admin_token}'},
-        json=produto_data,
+        data=form_data,
     )
 
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
@@ -487,3 +532,106 @@ async def test_alternar_disponibilidade_produto_nao_encontrado(
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert 'não encontrado' in response.json()['detail']
+
+
+@pytest.mark.asyncio
+async def test_criar_produto_extensao_invalida(client, admin_token):
+    """Testa upload com extensão não permitida"""
+    form_data = {
+        'name': 'Produto Ext Ruim',
+        'price': '100.00',
+        'category': 'bebida',
+    }
+
+    response = client.post(
+        '/produtos/create',
+        headers={'Authorization': f'Bearer {admin_token}'},
+        data=form_data,
+        files={
+            'image': (
+                'virus.exe',
+                io.BytesIO(b'MZ\x00\x00'),
+                'application/octet-stream',
+            )
+        },
+    )
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert 'não permitida' in response.json()['detail']
+
+
+@pytest.mark.asyncio
+async def test_criar_produto_imagem_grande(client, admin_token, monkeypatch):
+    """Testa upload de imagem acima do tamanho máximo"""
+    monkeypatch.setattr(settings, 'MAX_UPLOAD_SIZE_MB', 1)
+
+    form_data = {
+        'name': 'Produto Grande',
+        'price': '100.00',
+        'category': 'bebida',
+    }
+
+    grande = _image_file('grande.jpg', size_bytes=2 * 1024 * 1024)
+
+    response = client.post(
+        '/produtos/create',
+        headers={'Authorization': f'Bearer {admin_token}'},
+        data=form_data,
+        files={'image': grande},
+    )
+
+    assert response.status_code == HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+    assert 'demasiado grande' in response.json()['detail'].lower()
+
+
+@pytest.mark.asyncio
+async def test_atualizar_imagem_produto(client, session, admin_token):
+    """Testa PATCH /produtos/{public_id}/imagem"""
+    produto = Produto(
+        name='Produto Imagem', price=100.00, category=CategoriaProduto.BEBIDA
+    )
+    session.add(produto)
+    await session.commit()
+    await session.refresh(produto)
+
+    response = client.patch(
+        f'/produtos/{produto.public_id}/imagem',
+        headers={'Authorization': f'Bearer {admin_token}'},
+        files={'image': _image_file('nova.png')},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+    assert data['image_url'] is not None
+    assert data['image_url'].endswith('.png')
+
+    # Cleanup
+    nome = data['image_url'].split('/')[-1]
+    (settings.products_upload_path / nome).unlink(missing_ok=True)
+
+
+@pytest.mark.asyncio
+async def test_imagem_servida_estaticamente(client, session, admin_token):
+    """Verifica que a imagem fica acessível via /static/"""
+    form_data = {
+        'name': 'Produto Estático',
+        'price': '100.00',
+        'category': 'bebida',
+    }
+    response = client.post(
+        '/produtos/create',
+        headers={'Authorization': f'Bearer {admin_token}'},
+        data=form_data,
+        files={'image': _image_file('servida.jpg')},
+    )
+    assert response.status_code == HTTPStatus.CREATED
+    url = response.json()['image_url']
+
+    # httpx TestClient segue o mesmo `app`, então o mount /static funciona
+    r = client.get(url)
+    assert r.status_code == HTTPStatus.OK
+    assert len(r.content) > 0
+
+    # Cleanup
+    nome = url.split('/')[-1]
+    (settings.products_upload_path / nome).unlink(missing_ok=True)

@@ -2,17 +2,28 @@
 
 from typing import Annotated, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import (
+    APIRouter,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from restaurante_api.core.dependencies import Current_user, Session
+from restaurante_api.core.dependencies import (
+    Current_user,
+    ProduceCreateForm,
+    Session,
+)
 from restaurante_api.models.produto import CategoriaProduto, Produto
 from restaurante_api.schemas.produto import (
-    ProduceCreate,
     ProduceResponse,
     ProduceUpdate,
 )
+from restaurante_api.services.image_service import ImageService
 from restaurante_api.services.permission_service import PermissionService
 
 router = APIRouter(prefix='/produtos', tags=['produtos'])
@@ -94,20 +105,18 @@ async def buscar_produto_por_public_id(
     description='Cria um novo produto no cardápio',
 )
 async def create_product(
-    produto_data: ProduceCreate,
     session: Session,
     current_user: Current_user,
+    produto_data: ProduceCreateForm,
+    image: Annotated[Optional[UploadFile], File()] = None,
 ):
-    """Verifica se o usuário é um admin ou cliente"""
+    """Cria um novo produto. A imagem é opcional."""
     PermissionService.require_admin(current_user)
-    """Cria um novo produto"""
 
-    # Verifica se já existe produto com mesmo nome
+    # Verifica duplicado
     query = select(Produto).where(Produto.name == produto_data.name)
     result = await session.execute(query)
-    existente = result.scalar_one_or_none()
-
-    if existente:
+    if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Produto com nome '{produto_data.name}' já existe",
@@ -116,12 +125,24 @@ async def create_product(
     # Cria o produto
     produto = Produto(**produto_data.model_dump())
     session.add(produto)
+    await session.flush()
+
+    # Guarda imagem (se houver)
+    if image is not None:
+        try:
+            produto.image_url = await ImageService.salvar_imagem_produto(
+                image, produto.public_id
+            )
+        except HTTPException:
+            await session.rollback()
+            raise
 
     try:
         await session.commit()
         await session.refresh(produto)
     except IntegrityError:
         await session.rollback()
+        ImageService.remover_imagem(produto.image_url)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Erro ao criar produto. Verifique os dados.',
@@ -200,6 +221,8 @@ async def deletar_produto(
             detail=f'Produto com ID {public_id} não encontrado',
         )
 
+    ImageService.remover_imagem(produto.image_url)
+
     await session.delete(produto)
     await session.commit()
 
@@ -240,4 +263,41 @@ async def alternar_disponibilidade(
     await session.commit()
     await session.refresh(produto)
 
+    return produto
+
+
+@router.patch(
+    '/{public_id}/imagem',
+    response_model=ProduceResponse,
+    status_code=status.HTTP_200_OK,
+    summary='Atualizar imagem do produto',
+)
+async def atualizar_imagem_produto(
+    public_id: str,
+    session: Session,
+    current_user: Current_user,
+    image: Annotated[UploadFile, File(...)],
+):
+    PermissionService.require_admin(current_user)
+
+    query = select(Produto).where(Produto.public_id == public_id)
+    result = await session.execute(query)
+    produto = result.scalar_one_or_none()
+
+    if not produto:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'Produto com ID {public_id} não encontrado',
+        )
+
+    # Apaga a antiga
+    ImageService.remover_imagem(produto.image_url)
+
+    # Guarda a nova
+    produto.image_url = await ImageService.salvar_imagem_produto(
+        image, produto.public_id
+    )
+
+    await session.commit()
+    await session.refresh(produto)
     return produto

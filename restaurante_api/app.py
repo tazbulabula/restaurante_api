@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from restaurante_api.api.routers import (
     auth,
+    dashboard,
     mesas,
     pagamentos,
     pedidos,
@@ -10,7 +12,7 @@ from restaurante_api.api.routers import (
     reservas,
     users,
 )
-from restaurante_api.core.security import settings
+from restaurante_api.core.settings import settings
 
 app = FastAPI(
     title='Restaurante API',
@@ -34,6 +36,13 @@ app.include_router(mesas.router)
 app.include_router(reservas.router)
 app.include_router(pedidos.router)
 app.include_router(pagamentos.router)
+app.include_router(dashboard.router)
+
+app.mount(
+    settings.STATIC_URL,
+    StaticFiles(directory=settings.upload_path),
+    name='static',
+)
 
 
 @app.get('/')

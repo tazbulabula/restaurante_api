@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -8,7 +9,7 @@ class Settings(BaseSettings):
         env_file='.env', env_file_encoding='utf-8', extra='ignore'
     )
 
-    DATABASE_URL: str = "sqlite+aiosqlite:///./database.db"
+    DATABASE_URL: str = 'sqlite+aiosqlite:///./database.db'
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
@@ -36,7 +37,9 @@ class Settings(BaseSettings):
     EMIS_POS_ID: str = ''  # ID do ponto de venda
     EMIS_MERCHANT_TOKEN: str = ''  # Token do comerciante
     EMIS_SUPERVISOR_CARD: str = ''  # Cartão do supervisor
-    EMIS_CALLBACK_URL: str = 'https://restaurante-api-a1kn.onrender.com/pagamento/callback'
+    EMIS_CALLBACK_URL: str = (
+        'https://restaurante-api-a1kn.onrender.com/pagamento/callback'
+    )
 
     # ============================================================
     # Timeouts e Configurações
@@ -51,6 +54,26 @@ class Settings(BaseSettings):
         'http://localhost:3000',
         'https://restaurante-frontend-umber.vercel.app/',
     ]
+
+    # ============================================================
+    # Uploads / Imagens
+    # ============================================================
+    UPLOAD_DIR: str = 'uploads'  # relativo à raiz do projeto
+    STATIC_URL: str = '/static'
+    MAX_UPLOAD_SIZE_MB: int = 5
+    ALLOWED_IMAGE_EXTENSIONS: List[str] = ['jpg', 'jpeg', 'png', 'webp']
+
+    @property
+    def upload_path(self) -> Path:
+        path = Path(self.UPLOAD_DIR).resolve()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def products_upload_path(self) -> Path:
+        path = self.upload_path / 'produtos'
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
 
 settings = Settings()

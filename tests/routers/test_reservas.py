@@ -201,7 +201,7 @@ async def test_buscar_reserva_usuario_sem_permissao(
 
 
 @pytest.mark.asyncio
-async def test_criar_reserva(client, session, token):
+async def test_criar_reserva(client, session, token, user):
     """Testa criação de reserva"""
     mesa = Mesa(numero=1, capacidade=4, status=StatusMesa.DISPONIVEL)
     session.add(mesa)
@@ -230,6 +230,16 @@ async def test_criar_reserva(client, session, token):
     assert data['cliente_nome'] == 'Cliente Teste'
     assert data['status'] == 'reservada'
     assert data['expira_em'] is not None
+
+    minhas_reservas = client.get(
+        '/reservas/listar/minhas',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert minhas_reservas.status_code == HTTPStatus.OK
+    assert [reserva['cliente_nome'] for reserva in minhas_reservas.json()] == [
+        'Cliente Teste'
+    ]
 
 
 @pytest.mark.asyncio
